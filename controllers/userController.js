@@ -25,14 +25,17 @@ exports.inscription = [
     body("date_birth").trim().escape().custom((value, { req }) => {
         let today = new Date();
         let dateValue = new Date(value);
-        //console.log('--------------->value',dateValue,"-------------->today",today);
+        
         let errDateBirth = (today.getFullYear()<=dateValue.getFullYear() || (today.getFullYear()<=dateValue.getFullYear() && today.getMonth() <= dateValue.getMonth()) || (today.getFullYear()<=dateValue.getFullYear() && today.getMonth() <= dateValue.getMonth() && today.getDate()<=dateValue.getDate()));
-        let errAge = ((today.getFullYear() - dateValue.getFullYear()) < 10);
+        let errAge = (((today.getFullYear())-(dateValue.getFullYear()) <= 10) && (today.getMonth() >= dateValue.getMonth() && today.getDate()>dateValue.getDate()));
         if (errDateBirth) {
-          throw new Error("Votre date de naissance ne doit pas être inférieure à la date d'aujourd'hui.");
+            var err = "Votre date de naissance doit être inférieure à la date d'aujourd'hui.";
         }
-        else if(errAge){
-            throw new Error("Vous devez avoir plus de 10 ans pour accéder à notre site web.");
+        if(errAge){
+            err = "Vous devez avoir plus de 10 ans pour accéder à notre site web."
+        }
+        if(errDateBirth || errAge){
+            throw new Error(err);
         }
         return true;
       }),
@@ -205,14 +208,17 @@ exports.updateUser = [
     body("date_naissance").trim().escape().custom((value, { req }) => {
         let today = new Date();
         let dateValue = new Date(value);
-        //console.log('--------------->value',dateValue,"-------------->today",today);
+        
         let errDateBirth = (today.getFullYear()<=dateValue.getFullYear() || (today.getFullYear()<=dateValue.getFullYear() && today.getMonth() <= dateValue.getMonth()) || (today.getFullYear()<=dateValue.getFullYear() && today.getMonth() <= dateValue.getMonth() && today.getDate()<=dateValue.getDate()));
-        let errAge = ((today.getFullYear() - dateValue.getFullYear()) < 10);
+        let errAge = (((today.getFullYear())-(dateValue.getFullYear()) <= 10) && (today.getMonth() >= dateValue.getMonth() && today.getDate()>dateValue.getDate()));
         if (errDateBirth) {
-          throw new Error("Votre date de naissance ne doit pas être inférieure à la date d'aujourd'hui.");
+            var err = "Votre date de naissance doit être inférieure à la date d'aujourd'hui.";
         }
-        else if(errAge){
-            throw new Error("Vous devez avoir plus de 10 ans pour accéder à notre site web.");
+        if(errAge){
+            err = "Vous devez avoir plus de 10 ans pour accéder à notre site web."
+        }
+        if(errDateBirth || errAge){
+            throw new Error(err);
         }
         return true;
       }),

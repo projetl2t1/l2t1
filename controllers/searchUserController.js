@@ -37,40 +37,73 @@ exports.findUser = async (req,res)=>{
     }
 }
 exports.getFreeTimeId = async (req,res) =>{
-    console.log("++++++++==> clique sur un horaire ",req.body);
+    //console.log("++++++++==> clique sur un horaire ",req.body);
     if(req.body.userId && req.body.id){
         var messageErr = "";
         var messageSucc = "";
         var userId = req.body.userId;
         var userName = req.body.userName;
-        console.log("++++++++==>",req.body, userId, userName, req.session.userName);
+        //console.log("++++++++==>",req.body, userId, userName, req.session.userName);
         await Freetime.findOne({
             where :{
                 id : parseInt(req.body.id, 10),
             },
             raw : true,
         }).then(async task => {
-            console.log('resultat recherche horaire libre avec task',task);
+            console.log('resultat recherche horaire libre dans la BDD pour recuperer les donnees',task);
+            const existFT = await Freetime.findOne({
+                where: {
+                    idUser: req.session.userId,
+                    [Op.or] : [
+                        {
+                            date: task.date,
+                            [Op.or] : [
+                            {[Op.and]:[{start : {[Op.lte] : task.start}},{end : {[Op.gte] : task.start}}]},
+                            {[Op.and] : [{start : {[Op.lte] : task.end}},{end : {[Op.gte] : task.end}}]},
+                            {[Op.and] : [{start : {[Op.gte] : task.start}},{end : {[Op.lte] : task.end}}]}  ]
+                        },
+                        {
+                            date_end: task.date_end,
+                            [Op.or] : [
+                            {[Op.and]:[{start : {[Op.lte] : task.start}},{end : {[Op.gte] : task.start}}]},
+                            {[Op.and] : [{start : {[Op.lte] : task.end}},{end : {[Op.gte] : task.end}}]},
+                            {[Op.and] : [{start : {[Op.gte] : task.start}},{end : {[Op.lte] :task.end}}]}  ]
+                        }
+                    ]     
+                }
+            });
+            console.log("FT---------->",existFT);
             await Task.findOne({
                 where : {
-                    date : task.date,
+                    idUser: req.session.userId,
                     [Op.or] : [
-                        {[Op.and]:[{start : {[Op.lte] : req.body.start}},{end : {[Op.gte] : req.body.start}}]},
-                        {[Op.and] : [{start : {[Op.lte] : req.body.end}},{end : {[Op.gte] : req.body.end}}]},
-                        {[Op.and] : [{start : {[Op.gte] : req.body.start}},{end : {[Op.lte] : req.body.end}}]}
-                    ],
-                },
-                order: [['date', 'ASC'], ['start', 'ASC']],
-                raw : true,
+                        {
+                            date : task.date,
+                            [Op.or] : [
+                            {[Op.and]:[{start : {[Op.lte] : task.start}},{end : {[Op.gte] : task.start}}]},
+                            {[Op.and] : [{start : {[Op.lte] : task.end}},{end : {[Op.gte] : task.end}}]},
+                            {[Op.and] : [{start : {[Op.gte] : task.start}},{end : {[Op.lte] : task.end}}]}  ]
+                        },
+                        {
+                            date_end: task.date_end,
+                            [Op.or] : [
+                            {[Op.and]:[{start : {[Op.lte] : task.start}},{end : {[Op.gte] : task.start}}]},
+                            {[Op.and] : [{start : {[Op.lte] : task.end}},{end : {[Op.gte] : task.end}}]},
+                            {[Op.and] : [{start : {[Op.gte] : task.start}},{end : {[Op.lte] : task.end}}]}  ]
+                        }
+                    ]     
+                }
             }).then(async (exist) =>{
-                if(exist){
-                    console.log('res',exist,messageErr);
+                if(exist || existFT){
+                    console.log('EXIST---------->',exist);
                     messageErr = "Vous avez déjà un événement à cette date.";
                     console.log(messageErr);
                 }
                 else{
+                    console.log("TU PEUX PRENDRE RDV");
                     await Task.create({
                         date : task.date,
+                        date_end : task.date_end,
                         start : task.start,
                         end : task.end,
                         important : false,
@@ -80,6 +113,7 @@ exports.getFreeTimeId = async (req,res) =>{
                     })
                     await Task.create({
                         date : task.date,
+                        date_end : task.date_end,
                         start : task.start,
                         end : task.end,
                         important : false,

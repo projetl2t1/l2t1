@@ -115,7 +115,7 @@ exports.addFreeTime = [
             console.log('--------------------------------DANS FREE TIME RECHERCHE TASK---------------------------------',taskExist);
             if (freeTimeExist || taskExist) {
                 console.log('resultat ',freeTimeExist);
-                req.flash.error = "Vous avez déjà un horaire libre à cette date.";
+                req.flash.error = "Vous avez déjà un événement à cette date.";
                 res.redirect("/rendezVous");
             } else {
                 console.log(freeTimeExist, 'newFreeTime');
